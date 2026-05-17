@@ -1,17 +1,19 @@
 package net.balmir;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import net.balmir.core.ApplicationContext;
+import net.balmir.service.UserService;
+
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        System.out.println("=== DEMO FRAMEWORK IOC ===\n");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        ApplicationContext context = new ApplicationContext(Main.class);
+        UserService service = context.getBean(UserService.class);
+
+        System.out.println("Resultat: " + service.getUser(42));
+        System.out.println("\nTypes d'injection disponibles:");
+        System.out.println("  - Setter: appel des methodes setXxx()");
+        System.out.println("  - Field: acces direct aux attributs (reflection)");
+        System.out.println("  - Constructor: via le constructeur");
     }
 }
