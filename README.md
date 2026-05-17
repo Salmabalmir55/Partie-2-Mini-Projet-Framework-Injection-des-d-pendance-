@@ -41,16 +41,14 @@ Il reproduit les mécanismes fondamentaux d'un conteneur **IoC (Inversion of Con
 
 ##  Fonctionnalités
 
-| Fonctionnalité | Statut |
-|---|---|
-| Injection par constructeur | 
-| Injection par setter | 
-| Injection par field (réflexion) | 
-| Configuration par annotations | 
-| Configuration par XML (JAXB/OXM) | 
-| Scope singleton | 
-| Scope prototype | 
-| Scan automatique des packages | 
+| Injection par constructeur <br> 
+| Injection par setter<br> 
+| Injection par field <br>  
+| Configuration par annotations  <br> 
+| Configuration par XML (JAXB/OXM) <br> 
+| Scope singleton <br>  
+| Scope prototype <br> 
+| Scan automatique des packages 
 
 ---
 
