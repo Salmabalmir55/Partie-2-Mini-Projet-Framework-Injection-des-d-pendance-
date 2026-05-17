@@ -1,4 +1,11 @@
 package net.balmir.annotations;
+import java.lang.annotation.*;
 
-public @interface Component {
-}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+    public @interface Component {
+        String value() default "";
+    }
+
