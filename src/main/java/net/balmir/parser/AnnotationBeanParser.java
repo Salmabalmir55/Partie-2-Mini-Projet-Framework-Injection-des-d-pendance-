@@ -22,7 +22,15 @@ public class AnnotationBeanParser {
 
     public void scanAndRegister(String basePackage) {
         try {
+            System.out.println("Scan du package: " + basePackage);
+
             List<Class<?>> componentClasses = scanComponents(basePackage);
+
+            System.out.println("Classes trouvées: " + componentClasses.size());
+
+            for (Class<?> clazz : componentClasses) {
+                System.out.println("  - " + clazz.getName());
+            }
 
             for (Class<?> clazz : componentClasses) {
                 registerBean(clazz);
@@ -31,7 +39,10 @@ public class AnnotationBeanParser {
             for (Class<?> clazz : componentClasses) {
                 injectDependencies(clazz);
             }
+
         } catch (Exception e) {
+            System.err.println("Erreur scan: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Erreur scan annotations", e);
         }
     }
@@ -39,23 +50,47 @@ public class AnnotationBeanParser {
     private List<Class<?>> scanComponents(String basePackage) throws ClassNotFoundException {
         List<Class<?>> components = new ArrayList<>();
         String packagePath = basePackage.replace('.', '/');
+
+        System.out.println("Package path: " + packagePath);
+
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL resource = classLoader.getResource(packagePath);
 
-        if (resource != null) {
-            File directory = new File(resource.getFile());
-            if (directory.exists()) {
-                for (File file : directory.listFiles()) {
-                    if (file.getName().endsWith(".class")) {
-                        String className = basePackage + "." + file.getName().replace(".class", "");
-                        Class<?> clazz = Class.forName(className);
-                        if (clazz.isAnnotationPresent(Component.class)) {
-                            components.add(clazz);
-                        }
-                    }
+        System.out.println("Resource URL: " + resource);
+
+        if (resource == null) {
+            System.err.println("Resource introuvable pour: " + packagePath);
+            return components;
+        }
+
+        File directory = new File(resource.getFile());
+
+        if (!directory.exists()) {
+            System.err.println("Directory n'existe pas: " + directory.getAbsolutePath());
+            return components;
+        }
+
+        System.out.println("Scan du dossier: " + directory.getAbsolutePath());
+
+        for (File file : directory.listFiles()) {
+            System.out.println("  Fichier trouvé: " + file.getName());
+
+            if (file.getName().endsWith(".class")) {
+                String className = basePackage + "." + file.getName().replace(".class", "");
+                System.out.println("    Classe: " + className);
+
+                Class<?> clazz = Class.forName(className);
+                if (clazz.isAnnotationPresent(Component.class)) {
+                    System.out.println("      -> @Component trouvé !");
+                    components.add(clazz);
                 }
+            } else if (file.isDirectory()) {
+                System.out.println("  Sous-dossier: " + file.getName());
+                List<Class<?>> subComponents = scanComponents(basePackage + "." + file.getName());
+                components.addAll(subComponents);
             }
         }
+
         return components;
     }
 
@@ -64,6 +99,8 @@ public class AnnotationBeanParser {
         String beanName = component.value().isEmpty() ?
                 clazz.getSimpleName().substring(0, 1).toLowerCase() + clazz.getSimpleName().substring(1) :
                 component.value();
+
+        System.out.println("Enregistrement bean: " + beanName + " -> " + clazz.getName());
 
         BeanDefinition definition = new BeanDefinition(beanName, clazz.getName());
 
@@ -81,17 +118,21 @@ public class AnnotationBeanParser {
 
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Autowired.class)) {
+                System.out.println("Injection dans " + beanName + "." + field.getName());
+
                 field.setAccessible(true);
                 Object dependency;
 
                 if (field.isAnnotationPresent(Qualifier.class)) {
                     Qualifier qualifier = field.getAnnotation(Qualifier.class);
+                    System.out.println("  Qualifier: " + qualifier.value());
                     dependency = beanFactory.getBean(qualifier.value());
                 } else {
                     dependency = beanFactory.getBean(field.getType().getSimpleName());
                 }
 
                 field.set(bean, dependency);
+                System.out.println("  Injection OK");
             }
         }
     }
