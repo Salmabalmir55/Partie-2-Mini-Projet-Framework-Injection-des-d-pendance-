@@ -1,5 +1,6 @@
 package net.balmir.core;
 
+import net.balmir.injector.ConstructorInjector;
 import net.balmir.injector.FieldInjector;
 import net.balmir.injector.SetterInjector;
 
@@ -34,19 +35,24 @@ public class BeanFactory {
 
     private Object createBean(BeanDefinition definition) {
         try {
-            Class<?> clazz = Class.forName(definition.getClassName());
             Object bean;
 
             switch (definition.getInjectionType()) {
+                case CONSTRUCTOR:
+                    bean = new ConstructorInjector(this).createBean(definition);
+                    break;
                 case SETTER:
-                    bean = clazz.getDeclaredConstructor().newInstance();
+                    Class<?> clazzSetter = Class.forName(definition.getClassName());
+                    bean = clazzSetter.getDeclaredConstructor().newInstance();
                     new SetterInjector(this).inject(bean, definition);
                     break;
                 case FIELD:
-                    bean = clazz.getDeclaredConstructor().newInstance();
+                    Class<?> clazzField = Class.forName(definition.getClassName());
+                    bean = clazzField.getDeclaredConstructor().newInstance();
                     new FieldInjector(this).inject(bean, definition);
                     break;
                 default:
+                    Class<?> clazz = Class.forName(definition.getClassName());
                     bean = clazz.getDeclaredConstructor().newInstance();
             }
             return bean;
